@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 
 type Note = {
@@ -9,9 +9,22 @@ type Note = {
 function App() {
   const [text, setText] = useState<string>("");
   const [notes, setNote] = useState<Note[]>([]);
+  // load notes from storage
 
-  const addNote = () => {};
-  const deleteNote = () => {};
+  // save notes to chrome extension
+  useEffect(() => {
+    chrome.storage.sync.set({ notes });
+  }, [notes]);
+
+  const addNote = () => {
+    if (!text.trim()) return;
+    const newNote: Note = { id: Date.now(), text: text.trim() };
+    setNote([newNote, ...notes]);
+    setText("");
+  };
+  const deleteNote = (id: number) => {
+    setNote(notes.filter((n) => n.id !== id));
+  };
 
   return (
     <div className="w-90 p-4 bg-orange-200 rounded-lg shadow-md font-sans ">
@@ -26,16 +39,17 @@ function App() {
           onChange={(e) => setText(e.target.value)}
         />
         <button
-          className="bg-lime-950 text-white px-3 py-1 rounded hover:bg-blue-50"
-          // onClick={addNote()}
+          className="bg-lime-950 text-white px-3 py-1 rounded hover:bg-blue-50 hover:text-lime-950"
+          onClick={addNote}
         >
-          {" "}
           Add
         </button>
       </div>
       <div className="max-h-64 overflow-y-auto">
         {notes.length === 0 && (
-          <p className="text-lime-950 text-sm font-bold">no new notes yet 😄 </p>
+          <p className="text-lime-950 text-sm font-bold">
+            no new notes yet 😄{" "}
+          </p>
         )}
         {notes.map((note) => (
           <div
@@ -43,12 +57,12 @@ function App() {
             className="flex justify-between items-center mb-2 p-2 bg-white rounded shadow-sm"
           >
             <span className="break-words">{note.text}</span>
-            {/* <button
+            <button
               className="text-red-500 hover:text-red-700"
               onClick={() => deleteNote(note.id)}
             >
               Delete
-            </button> */}
+            </button>
           </div>
         ))}
       </div>
